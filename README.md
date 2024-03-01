@@ -2,7 +2,7 @@
 WRF2FVCOM is a collection of Fortran modules and a main program used for converting data from the Weather Research and Forecasting (WRF) model to the Finite Volume Coastal Ocean Model (FVCOM) format. This tool is useful for researchers and scientists working in the fields of atmospheric and oceanic modeling.
 
 ## Requirements
-- Fortran compiler (e.g., gfortran)
+- Fortran compiler (e.g., gfortran, intel)
 - NetCDF library
 
 ## Compilation
