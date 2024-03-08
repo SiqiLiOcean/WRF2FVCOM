@@ -60,7 +60,7 @@ After compiling, you can run the WRF2FVCOM tool as follows.
 - `module_coare.f90`: Module for bulk flux calculations.
 - `module_nc.f90`: Module for NetCDF file operations.
 - `module_slp.f90`: Module for sea level pressure calculations.
-- `wrf2fvcom_v3.1.f90`: Main program for converting WRF output to FVCOM format.
+- `wrf2fvcom.f90`: Main program for converting WRF output to FVCOM format.
 
 ## Contributing
 Contributions to WRF2FVCOM are welcome! If you find any issues or have suggestions for improvements, please submit a pull request or open an issue on GitHub.
