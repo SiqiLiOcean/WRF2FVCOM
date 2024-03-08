@@ -34,7 +34,7 @@
 ! Siqi Li, SMAST                                                        !
 ! 2022-03-29                                                            !
 !                                                                       !
-! Version 3.1                                                           !
+! Version 3.2                                                           !
 !                                                                       !
 ! Updated:                                                              !
 ! 2022-09-11  Siqi Li       Added x1,nx,y1,ny                           !
