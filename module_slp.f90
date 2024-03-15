@@ -1,7 +1,8 @@
 !========================================================================
 ! Calculate the sea level pressure                                      !
 !                                                                       !
-! The original code is from ARWpost                                     !
+! The original code is from ARWpost src/module_calc_slp.f90             !
+!  (https://www2.mmm.ucar.edu/wrf/src/ARWpost_V3.tar.gz)                !
 !                                                                       !
 ! Siqi Li, SMAST                                                        !
 ! 2024-03-01                                                            !
