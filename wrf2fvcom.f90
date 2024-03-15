@@ -34,7 +34,7 @@
 ! Siqi Li, SMAST                                                        !
 ! 2022-03-29                                                            !
 !                                                                       !
-! Version 3.2                                                           !
+! Version 3.3                                                           !
 !                                                                       !
 ! Updated:                                                              !
 ! 2022-09-11  Siqi Li       Added x1,nx,y1,ny                           !
@@ -136,7 +136,7 @@ PROGRAM wrf2fvcom
   ZT = 2.
   ZQ = 2.
   dt = 3600.  ! output time step (s)
-  !
+  
   ! Read the command line
   CALL read_args(files, fout, flag_list, flag_successive, flag_ice, flag_slp, proj_ref, version, x1, nx, y1, ny, t1, nt)
   
@@ -154,12 +154,10 @@ PROGRAM wrf2fvcom
       read(11, '(A200)') fin(k)
     end do
     close(11)
-
   else
     nf = 1
     allocate(fin(1))
     fin(1) = files
-    
   end if
 
   ! Read the nx and ny dimensions
@@ -298,7 +296,6 @@ PROGRAM wrf2fvcom
   CALL nc_put_att(fout, 'GLOBAL', 'source', 'wrf2fvcom version 3.0')
   if (flag_slp) then
     CALL nc_put_att(fout, 'GLOBAL', 'SLP', 'calculated')
-    
   else
     CALL nc_put_att(fout, 'GLOBAL', 'SLP', 'read from PSFC')
   endif
@@ -384,7 +381,6 @@ PROGRAM wrf2fvcom
       nt = nt - t1 + 1
     end if
 
- 
     CALL nc_read_att(fin(k), 'GLOBAL', 'BUCKET_MM', BUCKET_MM)
 
     if (t1>1) then
@@ -417,7 +413,6 @@ PROGRAM wrf2fvcom
         I_RAINNC_p = 0
       end if
     end if
-
 
     do it = t1, t1+nt-1
 
