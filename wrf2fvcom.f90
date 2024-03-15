@@ -46,6 +46,7 @@
 ! 2023-10-30  Siqi Li       Fixed the bug of BUCKET_MM                  !
 ! 2024-02-29  Siqi Li       Added the option of xx and yy               !
 ! 2024-03-01  Siqi Li       Added the option to select COARE version    !
+! 2024-03-15  Siqi Li       Corrected shortwave radiation with albedo   !
 !=======================================================================!
 PROGRAM wrf2fvcom
   !
@@ -85,6 +86,7 @@ PROGRAM wrf2fvcom
   REAL, ALLOCATABLE, DIMENSION(:,:)    :: SENSIBLE
   REAL, ALLOCATABLE, DIMENSION(:,:)    :: LATENT
   REAL, ALLOCATABLE, DIMENSION(:,:)    :: NET
+  REAL, ALLOCATABLE, DIMENSION(:,:)    :: ALBEDO
   REAL, ALLOCATABLE, DIMENSION(:,:)    :: USTRESS
   REAL, ALLOCATABLE, DIMENSION(:,:)    :: VSTRESS
   REAL, ALLOCATABLE, DIMENSION(:,:)    :: LON
@@ -174,6 +176,7 @@ PROGRAM wrf2fvcom
   allocate(lon(nx,ny), lat(nx,ny))
   allocate(U10(nx,ny), V10(nx,ny), T2(nx,ny), Q2(nx,ny), PSFC(nx,ny), SST(nx,ny))
   allocate(LONG(nx,ny), SHORT(nx,ny), SENSIBLE(nx,ny), LATENT(nx,ny), NET(nx,ny))
+  allocate(ALBEDO(nx,ny))
   allocate(USTRESS(nx,ny), VSTRESS(nx,ny))
   allocate(RAINC(nx,ny), RAINNC(nx,ny), I_RAINC(nx,ny), I_RAINNC(nx,ny))
   allocate(RAINC_p(nx,ny), RAINNC_p(nx,ny), I_RAINC_p(nx,ny), I_RAINNC_p(nx,ny))
@@ -436,6 +439,7 @@ PROGRAM wrf2fvcom
       CALL nc_read_var(fin(k), 'SST',      SST,      start, count)
       CALL nc_read_var(fin(k), 'GLW',      LONG,     start, count)
       CALL nc_read_var(fin(k), 'SWDOWN',   SHORT,    start, count)
+      CALL nc_read_var(fin(k), 'ALBEDO',   ALBEDO,   start, count)
       CALL nc_read_var(fin(k), 'RAINC',    RAINC,    start, count)
       CALL nc_read_var(fin(k), 'RAINNC',   RAINNC,   start, count)
       if (BUCKET_MM>0) then
@@ -448,12 +452,16 @@ PROGRAM wrf2fvcom
 
       do i = 1, nx
         do j = 1, ny
+          ! Calculate the net shortwave radiation at surface
+          SHORT(i,j) = SHORT(i,j) * (1-ALBEDO(i,j))
+          
           ! Sea-level pressure
           if (flag_slp) then
             CALL CALC_SLP(P(i,j,:), PB(i,j,:), T(i,j,:), QVAPOR(i,j,:), PH(i,j,:), PHB(i,j,:), SLP(i,j))
           else
             SLP = PSFC
           endif
+          
           ! Heat flux and wind stress
           SELECT CASE (TRIM(VERSION))
           CASE ('2.6')
@@ -465,6 +473,7 @@ PROGRAM wrf2fvcom
                            LONG(i,j),SHORT(i,j),SENSIBLE(i,j),LATENT(i,j),NET(i,j),          &
                            USTRESS(i,j),VSTRESS(i,j),lat(i,j))
           END SELECT
+          
           ! Evaporation
           CALL CALC_evaporation(LATENT(i,j), SST(i,j), evaporation(i,j))
           ! Cloud cover
