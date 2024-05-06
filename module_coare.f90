@@ -1226,7 +1226,7 @@ END SUBROUTINE COARE40VN
 
     real, intent(in   )  :: latent, sst
     real, intent(  out)  :: evaporation
-    real, parameter      :: rho0 = 1021  ! (ocean density,kg/m3)
+    real, parameter      :: rho0 = 1023  ! (ocean density,kg/m3)
 
     evaporation = latent / rho0 / ((2.501-0.00237*(sst-273.15))*1e6)
     
