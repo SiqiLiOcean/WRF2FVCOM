@@ -15,21 +15,22 @@
 !   ./wrf2fvcom -i input.nc -o output.nc                                !
 !   ./wrf2fvcom -i list.dat -o output.nc -l -s                          !
 !   ./wrf2fvcom -i list.dat -o output.nc -l -s -ice                     !
-!      -i    input file name / filelist                                 !
-!      -o    output file name                                           !
-!      -l    flag of filelist                      (optional)           !
-!      -s    flag of successive files              (optional)           !
-!      -x1   start x index                         (optional)           !
-!      -nx   x length                              (optional)           !
-!      -y1   start y index                         (optional)           !
-!      -ny   y length                              (optional)           !
-!      -t1   start time index                      (optional)           !
-!      -nt   time length                           (optional)           !
-!      -ice  output variables for the ice module   (optional)           !
-!      -slp  calculate SLP instead of PSFC         (optional)           !
-!      -proj options in PROJ (use quote)           (optional)           !
-!      -v    COARE version, use 2.6(def) or 4.0    (optional)           !
-!      -h    help information                                           !
+!      -i          input file name / filelist                           !
+!      -o          output file name                                     !
+!      -l          flag of filelist                      (optional)     !
+!      -s          flag of successive files              (optional)     !
+!      -x1         start x index                         (optional)     !
+!      -nx         x length                              (optional)     !
+!      -y1         start y index                         (optional)     !
+!      -ny         y length                              (optional)     !
+!      -t1         start time index                      (optional)     !
+!      -nt         time length                           (optional)     !
+!      -ice        output variables for the ice module   (optional)     !
+!      -slp        calculate SLP instead of PSFC         (optional)     !
+!      -proj       options in PROJ (use quote)           (optional)     !
+!      -v          COARE version, use 2.6(def) or 4.0    (optional)     !
+!      -land_wind  factor of the wind speed on land      (optional)     !
+!      -h          help information                                     !
 !                                                                       !
 ! Siqi Li, SMAST                                                        !
 ! 2022-03-29                                                            !
@@ -47,6 +48,7 @@
 ! 2024-02-29  Siqi Li       Added the option of xx and yy               !
 ! 2024-03-01  Siqi Li       Added the option to select COARE version    !
 ! 2024-03-15  Siqi Li       Corrected shortwave radiation with albedo   !
+! 2024-06-28  Siqi Li       Added the factor of land-wind               !
 !=======================================================================!
 PROGRAM wrf2fvcom
   !
@@ -73,7 +75,9 @@ PROGRAM wrf2fvcom
   INTEGER                              :: t1
   INTEGER                              :: nt
   INTEGER                              :: nz
+  REAL                                 :: land_wind
   ! Variables
+  REAL, ALLOCATABLE, DIMENSION(:,:)    :: XLAND
   REAL, ALLOCATABLE, DIMENSION(:,:)    :: U10
   REAL, ALLOCATABLE, DIMENSION(:,:)    :: V10
   REAL, ALLOCATABLE, DIMENSION(:,:)    :: T2
@@ -138,7 +142,7 @@ PROGRAM wrf2fvcom
   dt = 3600.  ! output time step (s)
   
   ! Read the command line
-  CALL read_args(files, fout, flag_list, flag_successive, flag_ice, flag_slp, proj_ref, version, x1, nx, y1, ny, t1, nt)
+  CALL read_args(files, fout, flag_list, flag_successive, flag_ice, flag_slp, proj_ref, version, x1, nx, y1, ny, t1, nt, land_wind)
   
   ! Read the input file name(s)
   if (flag_list) then
@@ -172,6 +176,7 @@ PROGRAM wrf2fvcom
   CALL nc_read_dim(fin(1), 'bottom_top', nz)
 
   allocate(lon(nx,ny), lat(nx,ny))
+  allocate(XLAND(nx,ny))
   allocate(U10(nx,ny), V10(nx,ny), T2(nx,ny), Q2(nx,ny), PSFC(nx,ny), SST(nx,ny))
   allocate(LONG(nx,ny), SHORT(nx,ny), SENSIBLE(nx,ny), LATENT(nx,ny), NET(nx,ny))
   allocate(ALBEDO(nx,ny))
@@ -420,6 +425,7 @@ PROGRAM wrf2fvcom
       print*, '  -', TRIM(Times(1:19))
       start = (/x1, y1, it/)
       count = (/nx, ny, 1/)
+      CALL nc_read_var(fin(k), 'XLAND',    XLAND,    start, count)
       CALL nc_read_var(fin(k), 'U10',      U10,      start, count)
       CALL nc_read_var(fin(k), 'V10',      V10,      start, count)
       CALL nc_read_var(fin(k), 'T2',       T2,       start, count)
@@ -457,6 +463,10 @@ PROGRAM wrf2fvcom
             SLP = PSFC
           endif
           
+          ! Adjust the wind on land 
+          WHERE (XLAND==1) U10 = U10*land_wind
+          WHERE (XLAND==1) V10 = V10*land_wind
+
           ! Heat flux and wind stress
           SELECT CASE (TRIM(VERSION))
           CASE ('2.6')
@@ -582,7 +592,7 @@ CONTAINS
   END SUBROUTINE GEO2XY
 
 
-  SUBROUTINE read_args(files, fout, flag_list, flag_successive, flag_ice, flag_slp, proj_ref, version, x1, nx, y1, ny, t1, nt)
+  SUBROUTINE read_args(files, fout, flag_list, flag_successive, flag_ice, flag_slp, proj_ref, version, x1, nx, y1, ny, t1, nt, land_wind)
     IMPLICIT NONE
 
     CHARACTER(len=200), INTENT(out) :: files
@@ -599,6 +609,7 @@ CONTAINS
     INTEGER, INTENT(out)            :: ny
     INTEGER, INTENT(out)            :: t1
     INTEGER, INTENT(out)            :: nt
+    REAL, INTENT(OUT)               :: land_wind
     INTEGER                         :: numarg
     INTEGER                         :: i
     INTEGER                         :: iargc
@@ -626,6 +637,7 @@ CONTAINS
     ny = 0
     t1 = 1
     nt = 0
+    land_wind = 1.0
     do while (i<=numarg)
       call getarg(i, dummy)
 
@@ -676,7 +688,11 @@ CONTAINS
           CASE ('-nt')
             i = i + 1
             CALL getarg(i, str)
-            read(str, *) nt   
+            read(str, *) nt
+          CASE ('-land_wind')
+            i = i + 1
+            CALL getarg(i, str)
+            read(str, *) land_wind           
           CASE DEFAULT
             CALL help_info
         END SELECT
@@ -695,20 +711,21 @@ CONTAINS
       
   SUBROUTINE help_info
       print*, 'Usage:'
-      print*, '  -i    : input file name / filelist'
-      print*, '  -o    : output file name'
-      print*, '  -l    : flag of filelist'
-      print*, '  -s    : flag of successive files'
-      print*, '  -x1   : start x index (optional)'
-      print*, '  -nx   : x length (optional)'
-      print*, '  -y1   : start y index (optional)'
-      print*, '  -ny   : y length (optional)'
-      print*, '  -t1   : start time index (optional)'
-      print*, '  -nt   : time length (optional)'
-      print*, '  -ice  : output variables for ice module'
-      print*, '  -slp  : calculate slp'
-      print*, '  -proj : options in PROJ (use quote)'
-      print*, '  -h    : help information'
+      print*, '  -i         : input file name / filelist'
+      print*, '  -o         : output file name'
+      print*, '  -l         : flag of filelist'
+      print*, '  -s         : flag of successive files'
+      print*, '  -x1        : start x index (optional)'
+      print*, '  -nx        : x length (optional)'
+      print*, '  -y1        : start y index (optional)'
+      print*, '  -ny        : y length (optional)'
+      print*, '  -t1        : start time index (optional)'
+      print*, '  -nt        : time length (optional)'
+      print*, '  -ice       : output variables for ice module'
+      print*, '  -slp       : calculate slp'
+      print*, '  -proj      : options in PROJ (use quote)'
+      print*, '  -land_wind : factor of land-wind'
+      print*, '  -h         : help information'
       stop
   END SUBROUTINE
 END PROGRAM wrf2fvcom
