@@ -28,14 +28,14 @@
 !      -ice        output variables for the ice module   (optional)     !
 !      -slp        calculate SLP instead of PSFC         (optional)     !
 !      -proj       options in PROJ (use quote)           (optional)     !
-!      -v          COARE version, use 2.6(def) or 4.0    (optional)     !
+!      -v          COARE version, use 2.6 or 4.0(def)    (optional)     !
 !      -land_wind  factor of the wind speed on land      (optional)     !
 !      -h          help information                                     !
 !                                                                       !
 ! Siqi Li, SMAST                                                        !
 ! 2022-03-29                                                            !
 !                                                                       !
-! Version 3.3                                                           !
+! Version 3.4                                                           !
 !                                                                       !
 ! Updated:                                                              !
 ! 2022-09-11  Siqi Li       Added x1,nx,y1,ny                           !
