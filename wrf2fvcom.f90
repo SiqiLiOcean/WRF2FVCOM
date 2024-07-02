@@ -2,14 +2,14 @@
 ! Adjust the WRF output to FVCOM input via COARE                        !
 !                                                                       !
 ! Compilation :                                                         !
-!ifort module_nc.f90                        \                           !
-!      module_slp.f90                       \                           !
-!      module_cloudfrac.f90                 \                           !
-!      module_coare.f90                     \                           !
-!      wrf2fvcom_v3.0.f90                   \                           !
-!      -L${nc_path}/lib -lnetcdff -lnetcdf  \                           !
-!      -I${nc_path}/include                 \                           !
-!      -o wrf2fvcom                                                     !
+! ifort module_nc.f90                        \                           !
+!       module_slp.f90                       \                           !
+!       module_cloudfrac.f90                 \                           !
+!       module_coare.f90                     \                           !
+!       wrf2fvcom_v3.0.f90                   \                           !
+!       -L${nc_path}/lib -lnetcdff -lnetcdf  \                           !
+!       -I${nc_path}/include                 \                           !
+!       -o wrf2fvcom                                                     !
 !                                                                       !
 ! Usage :                                                               !
 !   ./wrf2fvcom -i input.nc -o output.nc                                !
@@ -451,6 +451,10 @@ PROGRAM wrf2fvcom
         I_RAINNC = 0
       end if
 
+      ! Adjust the wind on land 
+      WHERE (XLAND==1) U10 = U10 * land_wind
+      WHERE (XLAND==1) V10 = V10 * land_wind
+          
       do i = 1, nx
         do j = 1, ny
           ! Calculate the net shortwave radiation at surface
@@ -462,10 +466,6 @@ PROGRAM wrf2fvcom
           else
             SLP = PSFC
           endif
-          
-          ! Adjust the wind on land 
-          WHERE (XLAND==1) U10 = U10*land_wind
-          WHERE (XLAND==1) V10 = V10*land_wind
 
           ! Heat flux and wind stress
           SELECT CASE (TRIM(VERSION))
