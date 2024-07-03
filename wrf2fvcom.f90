@@ -2,14 +2,14 @@
 ! Adjust the WRF output to FVCOM input via COARE                        !
 !                                                                       !
 ! Compilation :                                                         !
-! ifort module_nc.f90                        \                           !
-!       module_slp.f90                       \                           !
-!       module_cloudfrac.f90                 \                           !
-!       module_coare.f90                     \                           !
-!       wrf2fvcom_v3.0.f90                   \                           !
-!       -L${nc_path}/lib -lnetcdff -lnetcdf  \                           !
-!       -I${nc_path}/include                 \                           !
-!       -o wrf2fvcom                                                     !
+! ifort module_nc.f90                        \                          !
+!       module_slp.f90                       \                          !
+!       module_cloudfrac.f90                 \                          !
+!       module_coare.f90                     \                          !
+!       wrf2fvcom_v3.0.f90                   \                          !
+!       -L${nc_path}/lib -lnetcdff -lnetcdf  \                          !
+!       -I${nc_path}/include                 \                          !
+!       -o wrf2fvcom                                                    !
 !                                                                       !
 ! Usage :                                                               !
 !   ./wrf2fvcom -i input.nc -o output.nc                                !
