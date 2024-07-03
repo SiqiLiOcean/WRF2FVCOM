@@ -49,6 +49,7 @@
 ! 2024-03-01  Siqi Li       Added the option to select COARE version    !
 ! 2024-03-15  Siqi Li       Corrected shortwave radiation with albedo   !
 ! 2024-06-28  Siqi Li       Added the factor of land-wind               !
+! 2024-07-03  Siqi Li       Fixed the bug on start_out and count_out    !
 !=======================================================================!
 PROGRAM wrf2fvcom
   !
@@ -132,6 +133,8 @@ PROGRAM wrf2fvcom
   INTEGER, DIMENSION(3)                :: count
   INTEGER, DIMENSION(3)                :: start_out
   INTEGER, DIMENSION(3)                :: count_out
+  INTEGER, DIMENSION(2)                :: start_out2
+  INTEGER, DIMENSION(2)                :: count_out2
   INTEGER                              :: i, j, k, it, iout, iv, id
 
 
@@ -504,6 +507,8 @@ PROGRAM wrf2fvcom
       iout = iout + 1
       start_out = (/1, 1, iout/)
       count_out = (/nx, ny, 1/)
+      start_out2 = (/1, iout/)
+      count_out2 = (/19, 1/)
       CALL nc_put_var(fout, 'U10', U10, start_out, count_out)
       CALL nc_put_var(fout, 'V10', V10, start_out, count_out)
       CALL nc_put_var(fout, 'Stress_U', USTRESS, start_out, count_out)
@@ -522,7 +527,7 @@ PROGRAM wrf2fvcom
         CALL nc_put_var(fout, 'SAT', SAT, start_out, count_out)
         CALL nc_put_var(fout, 'cloud_cover', cloud_cover, start_out, count_out)
       end if
-      CALL nc_put_var(fout, 'Times', Times, (/1,iout/), (/19,1/))
+      CALL nc_put_var(fout, 'Times', Times, start_out2, count_out2)
 
     end do
 
