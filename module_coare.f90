@@ -392,7 +392,7 @@ SUBROUTINE COARE26Z(UWIND,VWIND,ZU,TA,ZT,QV,ZQ,PA,TS,DLW,DSW,HSB,HLB,NET,USTRESS
             qout=Rnl+hsb+hlb
  
 
-            dels=Rns*(.065+11*tkt-  6.6*0.00001/(tkt*(1-exp(-tkt/8.0*0.0001))))
+            dels=Rns*(.065+11*tkt-  6.6*0.00001/(tkt*(1-exp(-tkt/(8.0*0.0001)))))
             qcol=qout-dels
             alq=Al*qcol+be*hlb*cpw/Le
             if (alq.gt.0)then
